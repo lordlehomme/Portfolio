@@ -11,6 +11,11 @@
     <div class="reveal">
         <div class="slides">
             <!-- Slide 1: Animated Logo -->
+            <section class="logo-section active">
+                <svg class="logo" viewBox="0 0 200 200">
+                    <image href="logo.svg" width="100%" height="100%"/>
+                </svg>
+            </section>
 
             <!-- Slide 2: Project Developer -->
             <section>
@@ -33,8 +38,24 @@
 
     <script>
         Reveal.initialize({
+            controls: true,  /* Включаем графические стрелки */
+            controlsLayout: 'bottom-right', /* Расположение стрелок */
+            controlsBackArrows: 'visible', /* Стрелки назад всегда видны */
             transition: 'fade',
-            backgroundTransition: 'slide'
+            backgroundTransition: 'slide',
+            keyboard: {
+                37: 'prev', // Стрелка влево
+                39: 'next'  // Стрелка вправо
+            }
+        });
+
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "ArrowRight") {
+                Reveal.next();
+            }
+            if (event.key === "ArrowLeft") {
+                Reveal.prev();
+            }
         });
     </script>
 </body>
