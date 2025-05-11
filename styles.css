@@ -1,3 +1,10 @@
+body {
+    background-color: #1a1a1a;
+    color: white;
+    font-family: "Helvetica Neue", sans-serif;
+}
+
+/* Animated Logo */
 .logo {
     width: 400px;
     height: 400px;
@@ -21,12 +28,13 @@
         opacity: 0;
     }
     to {
-        transform: scale(1) translateY(0);
+        transform: scale(1);
         opacity: 1;
     }
 }
+
+/* Animated Gradient Text */
 .animated-gradient {
-    font-family: "Helvetica Neue", sans-serif;
     font-size: 48px;
     font-weight: bold;
     text-transform: uppercase;
@@ -42,6 +50,8 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
+
+/* Slide Animations */
 .reveal .slides section {
     opacity: 0;
     transform: translateY(30px);
