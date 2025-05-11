@@ -7,34 +7,51 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
 }
 
-/* Центрирование презентации */
+/* Презентация на всю страницу */
 .reveal {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Убираем лишнее смещение текста */
+/* Центрирование слайдов */
 .reveal .slides {
-    width: 80%;
-    height: 80%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Центрируем слайды */
-.reveal .slides section {
-    text-align: center;
     width: 100%;
     height: 100%;
+    position: relative;
+}
+
+/* Эффект туннеля при смене слайдов */
+.reveal .slides section {
+    width: 100%;
+    height: 100%;
+    text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+    animation: tunnelEffect 2s forwards;
+}
+
+/* Анимация приближения слайда */
+@keyframes tunnelEffect {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.5);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 /* Animated Logo */
@@ -82,21 +99,4 @@ body {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-}
-
-/* Slide Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.reveal .slides section {
-    opacity: 0;
-    animation: fadeIn 1.5s ease-in-out forwards;
 }
