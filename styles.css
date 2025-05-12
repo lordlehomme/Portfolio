@@ -59,35 +59,6 @@ body {
     }
 }
 
-/* Animated Logo */
-.logo {
-    width: 400px;
-    height: 400px;
-    stroke: white;
-    stroke-width: 4;
-    fill: none;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: draw 3s ease-out forwards, scale 2s ease-in-out 1.5s forwards;
-}
-
-@keyframes draw {
-    to {
-        stroke-dashoffset: 0;
-    }
-}
-
-@keyframes scale {
-    from {
-        transform: scale(1.5);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
 /* Animated Gradient Text */
 .animated-gradient {
     font-size: 48px;
