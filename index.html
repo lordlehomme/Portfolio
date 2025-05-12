@@ -44,18 +44,6 @@
             39: 'next'  // Стрелка вправо
         }
     });
-
-    document.addEventListener("keydown", function(event) {
-        if (event.key === "ArrowRight") {
-            Reveal.next();
-        }
-        if (event.key === "ArrowLeft") {
-            Reveal.prev();
-        }
-    });
-
-    // Проверяем, чтобы первый слайд был активен
-    document.querySelector(".slides section").classList.add("active");
 </script>
 </body>
 </html>
