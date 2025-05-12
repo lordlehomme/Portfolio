@@ -27,38 +27,6 @@ body {
     position: relative;
 }
 
-/* Каждый слайд скрывается перед появлением следующего */
-.reveal .slides section {
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
-}
-
-/* Показываем активный слайд */
-
-/* Анимация приближения слайда */
-@keyframes tunnelEffect {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(1.5);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
 /* Animated Gradient Text */
 .animated-gradient {
     font-size: 48px;
