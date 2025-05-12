@@ -46,10 +46,6 @@ body {
 }
 
 /* Показываем активный слайд */
-.reveal .slides section.active {
-    opacity: 1;
-    visibility: visible;
-}
 
 /* Анимация приближения слайда */
 @keyframes tunnelEffect {
