@@ -34,8 +34,9 @@
     <script>
     Reveal.initialize({
         controls: true,  /* Включаем графические стрелки */
+        progress: false, /* Отключаем точки */
         controlsLayout: 'bottom-right', /* Расположение стрелок */
-        controlsBackArrows: 'visible', /* Стрелки назад всегда видны */
+        controlsBackArrows: 'visible', /* Всегда видимая стрелка назад */
         transition: 'fade',
         backgroundTransition: 'slide',
         keyboard: {
@@ -45,22 +46,15 @@
     });
 
     document.addEventListener("keydown", function(event) {
-        let slides = document.querySelectorAll(".slides section");
-        let activeSlide = document.querySelector(".slides section.active");
-        let activeIndex = Array.from(slides).indexOf(activeSlide);
-
-        if (event.key === "ArrowRight" && activeIndex < slides.length - 1) {
-            slides[activeIndex].classList.remove("active");
-            slides[activeIndex + 1].classList.add("active");
+        if (event.key === "ArrowRight") {
+            Reveal.next();
         }
-
-        if (event.key === "ArrowLeft" && activeIndex > 0) {
-            slides[activeIndex].classList.remove("active");
-            slides[activeIndex - 1].classList.add("active");
+        if (event.key === "ArrowLeft") {
+            Reveal.prev();
         }
     });
 
-    // Показываем первый слайд по умолчанию
+    // Проверяем, чтобы первый слайд был активен
     document.querySelector(".slides section").classList.add("active");
 </script>
 </body>
