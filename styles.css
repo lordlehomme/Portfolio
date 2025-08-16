@@ -1,4 +1,4 @@
-/* Основные стили */
+/* General Styles */
 body {
     background-color: #1a1a1a;
     color: white;
@@ -6,12 +6,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
     margin: 0;
     overflow: hidden;
 }
 
-/* Презентация на всю страницу */
+/* Fullpage Presentation */
 .reveal {
     width: 100vw;
     display: flex;
@@ -19,11 +18,15 @@ body {
     align-items: center;
 }
 
-/* Центрирование слайдов */
+/* Centering Slides */
 .reveal .slides {
     width: 100%;
-    height: 100vh;
     position: relative;
+}
+
+/* Aligning Height of Sections */
+section {
+    height: 100vh;
 }
 
 /* Animated Gradient Text */
@@ -44,7 +47,7 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* Адаптация под мобильные устройства */
+/* Adaptation for Mobile Devices */
 @media (max-width: 768px) {
     .reveal .slides section {
         padding: 10px;
