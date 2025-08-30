@@ -13,6 +13,8 @@
             <section>
                 <h1 class="animated-gradient">Project Developer</h1>
             </section>
+            <canvas id="gl"></canvas>
+            <div class="notice">Scroll to change modes · move mouse</div>
 
             <!-- Slide 2: Enterprise Design Thinking -->
             <section>
@@ -27,5 +29,214 @@
             </section>
         </div>
     </div>
+    <script>
+(function(){
+  const canvas = document.getElementById('gl');
+  const title  = document.getElementById('title');
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- WebGL bootstrap ---
+  const gl = canvas.getContext('webgl', {antialias:false, alpha:false});
+  if(!gl){ alert('WebGL not supported'); return; }
+  const ext = gl.getExtension('OES_standard_derivatives');
+
+  const vert = `
+    attribute vec2 a_pos;
+    void main(){ gl_Position = vec4(a_pos, 0.0, 1.0); }
+  `;
+
+  const frag = `
+    precision highp float;
+    ${ext ? "#extension GL_OES_standard_derivatives : enable" : ""}
+
+    uniform vec2  u_res;
+    uniform float u_time;
+    uniform float u_angleDeg;   // global accumulated angle in degrees
+    uniform vec2  u_mouse;      // -1..1
+    uniform int   u_mode;       // 1,2,3
+    uniform float u_dpr;
+
+    // palette colors (approx from your mock)
+    vec3 palette(int i){
+      if(i==0) return vec3(0.956,0.263,0.212);   // #f44336
+      if(i==1) return vec3(1.000,0.596,0.000);   // #ff9800
+      if(i==2) return vec3(1.000,0.757,0.027);   // #ffc107
+      if(i==3) return vec3(0.612,0.153,0.686);   // #9c27b0
+      if(i==4) return vec3(0.404,0.227,0.718);   // #673ab7
+      return vec3(0.247,0.318,0.710);           // #3f51b5
+    }
+
+    float sdCircle(vec2 p, float r){
+      return length(p) - r;
+    }
+
+    // anti-aliased edge
+    float aa(float d){
+      #ifdef GL_OES_standard_derivatives
+        float w = fwidth(d);
+      #else
+        float w = 1.0 / 800.0;
+      #endif
+      return smoothstep(0.0, -w*1.5, -d);
+    }
+
+    void main(){
+      vec2 uv = (gl_FragCoord.xy) / (u_res*u_dpr); // 0..1
+      vec2 p = (uv - 0.5) * vec2(u_res.x/u_res.y, 1.0); // center & aspect
+      float aGlobal = mod(u_angleDeg, 360.0);
+
+      // base radii by mode
+      float Rbase = (u_mode==1) ? 0.27 : (u_mode==2) ? 0.40 : 0.58;
+      float Rx = Rbase + u_mouse.x * 0.10;
+      float Ry = (u_mode==1) ? Rbase*0.70 : (u_mode==2) ? Rbase*0.90 : (Rbase*1.05 + u_mouse.y*0.08);
+
+      vec3 col = vec3(0.0);
+      float alpha = 0.0;
+
+      for(int i=0;i<6;i++){
+        float baseA = float(i) * (360.0/6.0);
+        float a = radians(mod(aGlobal + baseA, 360.0));    // current angle in radians
+        float aDeg = degrees(a);
+
+        // orbits
+        float precess = (u_mode==2) ? radians(aGlobal*0.15) : 0.0;
+        float fx = (u_mode==3) ? 1.0 : 1.0;
+        float fy = (u_mode==3) ? 1.618 : 1.0; // lissajous in fast mode
+
+        vec2 c = vec2(cos(a*fx + precess)*Rx, sin(a*fy)*Ry);
+
+        // size morph by angle sectors
+        float size;
+        if(aDeg >= 270.0)      size = 0.010; // dot
+        else if(aDeg >= 90.0)  size = 0.040; // circle
+        else                   size = 0.110; // "tile"
+
+        // draw glow
+        vec3 color = palette(i);
+        float d = sdCircle(p - c, size);
+        float core = aa(d);
+        // soft glow ring
+        float glow = smoothstep(0.20, 0.0, abs(d)) * (0.08 + float(u_mode)*0.05);
+
+        col += color * (core*0.95 + glow*0.6);
+        alpha = max(alpha, max(core, glow*0.8));
+
+        // faint orbit (mode 1/2 and not yet a dot)
+        if(u_mode != 3 && aDeg < 270.0){
+          float orbit = abs(sdCircle(p, mix(Rx,Ry,0.5)));
+          float line = smoothstep(0.0025, 0.0, 0.002 - orbit);
+          col += color * line * 0.06;
+          alpha = max(alpha, line*0.06);
+        }
+      }
+
+      // vignette
+      float v = smoothstep(1.2, 0.2, length(p));
+      col *= v;
+
+      // gamma-ish
+      col = pow(col, vec3(0.85));
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  function compile(type, src){
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if(!gl.getShaderParameter(sh, gl.COMPILE_STATUS)){
+      console.error(gl.getShaderInfoLog(sh));
+      throw new Error('Shader compile error');
+    }
+    return sh;
+  }
+
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, vert));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, frag));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){
+    console.error(gl.getProgramInfoLog(prog));
+    throw new Error('Program link error');
+  }
+  gl.useProgram(prog);
+
+  // fullscreen triangle
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+     -1,-1, 3,-1, -1,3
+  ]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'a_pos');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+  // uniforms
+  const u_res      = gl.getUniformLocation(prog, 'u_res');
+  const u_time     = gl.getUniformLocation(prog, 'u_time');
+  const u_angleDeg = gl.getUniformLocation(prog, 'u_angleDeg');
+  const u_mouse    = gl.getUniformLocation(prog, 'u_mouse');
+  const u_mode     = gl.getUniformLocation(prog, 'u_mode');
+  const u_dpr      = gl.getUniformLocation(prog, 'u_dpr');
+
+  let mode = 1, lastY = scrollY, lastMode = 1;
+  let mouse = {x:0, y:0};
+  let angleDeg = 0;
+
+  // handle scroll speed → mode
+  addEventListener('scroll', () => {
+    const v = Math.abs(scrollY - lastY); lastY = scrollY;
+    mode = (v < 10) ? 1 : (v < 40 ? 2 : 3);
+    if(mode !== lastMode){
+      // subtle flash via text wobble
+      title.style.transition = 'transform .25s cubic-bezier(.2,.7,.2,1.4)';
+      title.style.transform = 'translateY(50%) scale(1.04)';
+      setTimeout(() => title.style.transform = 'translateY(50%) scale(1.0)', 180);
+      lastMode = mode;
+    }
+  }, {passive:true});
+
+  // mouse
+  addEventListener('mousemove', e => {
+    mouse.x = (e.clientX / innerWidth - 0.5) * 2;
+    mouse.y = (e.clientY / innerHeight - 0.5) * 2;
+  }, {passive:true});
+
+  // resize
+  function resize(){
+    const w = Math.floor(canvas.clientWidth * DPR);
+    const h = Math.floor(canvas.clientHeight * DPR);
+    if(canvas.width !== w || canvas.height !== h){
+      canvas.width = w; canvas.height = h;
+    }
+    gl.viewport(0,0,canvas.width,canvas.height);
+    gl.uniform2f(u_res, canvas.clientWidth, canvas.clientHeight);
+    gl.uniform1f(u_dpr, DPR);
+  }
+  new ResizeObserver(resize).observe(canvas);
+  resize();
+
+  // animation
+  let t0 = performance.now();
+  function frame(t){
+    const dt = Math.max(0, t - t0) / 1000; t0 = t;
+
+    // accumulate angle based on mode; reduced motion halves speed
+    const base = (mode===1)? 36 : (mode===2)? 72 : 126; // deg/sec
+    const speed = prefersReduced ? base*0.5 : base;
+    angleDeg = (angleDeg + speed*dt) % 3600;
+
+    gl.uniform1f(u_time, t*0.001);
+    gl.uniform1f(u_angleDeg, angleDeg);
+    gl.uniform2f(u_mouse, mouse.x, mouse.y);
+    gl.uniform1i(u_mode, mode);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>
